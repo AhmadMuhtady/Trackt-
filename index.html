@@ -1,0 +1,589 @@
+<!doctype html>
+
+<html class="dark" lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+		<title>Trackt // Performance Tracker</title>
+		<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+		<link
+			rel="icon"
+			href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<script id="tailwind-config">
+			tailwind.config = {
+				darkMode: 'class',
+				theme: {
+					extend: {
+						colors: {
+							'surface-container': '#121b20',
+							'on-secondary-fixed': '#4a2e00',
+							'on-tertiary-container': '#4f585f',
+							'error-dim': '#d7383b',
+							'surface-tint': '#63ff9d',
+							'on-surface': '#f1f7fe',
+							'outline-variant': '#42494e',
+							'surface-container-lowest': '#000000',
+							'tertiary-dim': '#d5dee7',
+							'primary-container': '#18ca6f',
+							'on-tertiary': '#576068',
+							'error-container': '#9f0519',
+							'inverse-on-surface': '#4f565b',
+							'tertiary-fixed-dim': '#d5dee7',
+							'surface-container-low': '#0d1419',
+							'on-primary-container': '#00391b',
+							'surface-variant': '#1d272e',
+							'inverse-surface': '#f5faff',
+							'on-secondary': '#533400',
+							'secondary-dim': '#e9a333',
+							outline: '#6f767c',
+							'surface-container-high': '#182127',
+							tertiary: '#f6faff',
+							'surface-bright': '#232d35',
+							'on-tertiary-fixed-variant': '#596269',
+							'tertiary-container': '#e3ecf5',
+							surface: '#080f13',
+							'on-tertiary-fixed': '#3d464d',
+							background: '#080f13',
+							'on-primary': '#005f30',
+							'on-background': '#f1f7fe',
+							'secondary-fixed': '#ffc87e',
+							'surface-container-highest': '#1d272e',
+							error: '#ff716c',
+							'on-primary-fixed': '#004a24',
+							'primary-fixed': '#63ff9d',
+							'on-secondary-fixed-variant': '#704800',
+							'secondary-fixed-dim': '#ffb546',
+							primary: '#63ff9d',
+							secondary: '#f9b040',
+							'primary-dim': '#52f090',
+							'primary-fixed-dim': '#52f090',
+							'secondary-container': '#835500',
+							'surface-dim': '#080f13',
+							'on-surface-variant': '#a5acb2',
+							'inverse-primary': '#006e39',
+							'tertiary-fixed': '#e3ecf5',
+							'on-primary-fixed-variant': '#006a36',
+							'on-error': '#490006',
+							'on-secondary-container': '#fff6ef',
+							'on-error-container': '#ffa8a3',
+						},
+						borderRadius: {
+							DEFAULT: '0.125rem',
+							lg: '0.25rem',
+							xl: '0.5rem',
+							full: '0.75rem',
+						},
+						fontFamily: {
+							headline: ['Manrope'],
+							body: ['Manrope'],
+							label: ['Manrope'],
+						},
+					},
+				},
+			};
+		</script>
+		<style>
+			body {
+				font-family: 'Manrope', sans-serif;
+			}
+			.material-symbols-outlined {
+				font-variation-settings:
+					'FILL' 0,
+					'wght' 400,
+					'GRAD' 0,
+					'opsz' 24;
+			}
+			::-webkit-scrollbar {
+				width: 6px;
+			}
+			::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			::-webkit-scrollbar-thumb {
+				background: #42494e;
+				border-radius: 10px;
+			}
+			.map-container {
+				background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDT6ZAf4mj5o3AWVgaQAjQ8Y2BFlnjx1sgwa90hPRhxdGdOtFbhILgMwsIOrA7c9T7zdLdlF85TJ0Vaha9hoBWMfmG85rS_2AUvx895RTuslWIW5nTTDYbSozVWmTkfdvWXwi3LD6EeiHFplT60ehdzOM2gQTCVMyKt9XuGj5z-ARqH1-2wx1VXOm1AE_2UXxKx407EoNRSJ1YKmxil3nxFhFnSKU-DM_l6YhlkdimJE-jFxYitsFMbt9ULB4DWStJi1gKWFSfCoMA);
+				background-size: cover;
+				background-position: center;
+			}
+		</style>
+	</head>
+	<body
+		class="bg-surface text-on-surface selection:bg-primary selection:text-on-primary-container overflow-hidden"
+	>
+		<!-- Fixed Left Sidebar: Predicted SideNavBar -->
+		<aside
+			class="fixed left-0 top-0 h-screen w-[380px] z-40 bg-[#2d3439] dark:bg-slate-800 shadow-2xl shadow-black/50 flex flex-col py-8 px-6 gap-y-6 font-manrope antialiased tracking-tight"
+		>
+			<!-- Header & Logo -->
+			<div class="flex items-center gap-3">
+				<div class="bg-primary p-2 rounded-lg">
+					<span
+						class="material-symbols-outlined text-on-primary-fixed"
+						data-icon="explore"
+						data-weight="fill"
+						style="font-variation-settings: 'FILL' 1"
+						>explore</span
+					>
+				</div>
+				<div>
+					<h1 class="text-2xl font-black tracking-tighter text-white uppercase">
+						Trackt
+					</h1>
+					<p
+						class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold"
+					>
+						Performance Tracker
+					</p>
+				</div>
+			</div>
+			<!-- Global Stats Panel -->
+			<div
+				class="grid grid-cols-3 gap-2 bg-surface-container-highest/30 p-4 rounded-xl backdrop-blur-sm"
+			>
+				<div class="text-center">
+					<p
+						class="text-[10px] text-on-surface-variant uppercase font-bold mb-1"
+					>
+						Workouts
+					</p>
+					<p class="text-xl font-extrabold text-white">12</p>
+				</div>
+				<div class="text-center border-x border-outline-variant/30">
+					<p
+						class="text-[10px] text-on-surface-variant uppercase font-bold mb-1"
+					>
+						Distance
+					</p>
+					<p class="text-xl font-extrabold text-white">
+						142<span class="text-xs ml-0.5 text-on-surface-variant">km</span>
+					</p>
+				</div>
+				<div class="text-center">
+					<p
+						class="text-[10px] text-on-surface-variant uppercase font-bold mb-1"
+					>
+						Time
+					</p>
+					<p class="text-xl font-extrabold text-white">
+						640<span class="text-xs ml-0.5 text-on-surface-variant">m</span>
+					</p>
+				</div>
+			</div>
+			<!-- Navigation Tabs -->
+			<nav class="flex flex-col gap-1">
+				<div
+					class="text-white font-bold border-l-4 border-[#00c46a] bg-slate-700/50 flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
+				>
+					<span class="material-symbols-outlined" data-icon="dashboard"
+						>dashboard</span
+					>
+					<span class="text-sm">All Workouts</span>
+				</div>
+				<div
+					class="text-slate-400 font-medium hover:text-white flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
+				>
+					<span class="material-symbols-outlined" data-icon="directions_run"
+						>directions_run</span
+					>
+					<span class="text-sm">Running</span>
+				</div>
+				<div
+					class="text-slate-400 font-medium hover:text-white flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
+				>
+					<span class="material-symbols-outlined" data-icon="directions_bike"
+						>directions_bike</span
+					>
+					<span class="text-sm">Cycling</span>
+				</div>
+			</nav>
+			<!-- Sort & Filter Container -->
+			<div class="flex items-center justify-between px-2">
+				<p class="text-xs font-bold text-on-surface-variant uppercase">
+					Recent Activity
+				</p>
+				<div class="flex items-center gap-2">
+					<button
+						class="p-1.5 rounded-md bg-surface-variant hover:bg-surface-bright text-on-surface-variant transition-colors"
+					>
+						<span class="material-symbols-outlined text-sm" data-icon="sort"
+							>sort</span
+						>
+					</button>
+					<button
+						class="p-1.5 rounded-md bg-surface-variant hover:bg-surface-bright text-on-surface-variant transition-colors"
+					>
+						<span
+							class="material-symbols-outlined text-sm"
+							data-icon="filter_list"
+							>filter_list</span
+						>
+					</button>
+				</div>
+			</div>
+			<!-- Workout List (Scrollable) -->
+			<div class="flex-grow overflow-y-auto pr-2 space-y-4">
+				<!-- Hidden Form: Workout Entry -->
+				<form
+					class="form bg-surface-container-low p-5 rounded-xl border-l-4 border-primary/50 shadow-lg space-y-4"
+				>
+					<div class="grid grid-cols-2 gap-4">
+						<div class="space-y-1">
+							<label
+								class="text-[10px] font-bold text-on-surface-variant uppercase px-1"
+								>Type</label
+							>
+							<select
+								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30"
+							>
+								<option value="running">Running</option>
+								<option value="cycling">Cycling</option>
+							</select>
+						</div>
+						<div class="space-y-1">
+							<label
+								class="text-[10px] font-bold text-on-surface-variant uppercase px-1"
+								>Distance</label
+							>
+							<input
+								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30 placeholder:text-on-tertiary-container"
+								placeholder="km"
+								type="text"
+							/>
+						</div>
+						<div class="space-y-1">
+							<label
+								class="text-[10px] font-bold text-on-surface-variant uppercase px-1"
+								>Duration</label
+							>
+							<input
+								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30 placeholder:text-on-tertiary-container"
+								placeholder="min"
+								type="text"
+							/>
+						</div>
+						<div class="space-y-1">
+							<label
+								class="text-[10px] font-bold text-on-surface-variant uppercase px-1"
+								>Cadence</label
+							>
+							<input
+								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30 placeholder:text-on-tertiary-container"
+								placeholder="step/min"
+								type="text"
+							/>
+						</div>
+					</div>
+					<button class="hidden" type="submit">Post</button>
+				</form>
+				<!-- Workout Card: Running -->
+				<div
+					class="workout workout--running relative group bg-[#3b444b] p-5 rounded-xl border-l-[5px] border-[#00c46a] shadow-xl hover:translate-x-1 transition-all cursor-pointer"
+				>
+					<div class="flex justify-between items-start mb-4">
+						<h2
+							class="workout__title text-white font-bold text-base leading-tight"
+						>
+							Running on April 14
+						</h2>
+						<button
+							class="btn-delete opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-error"
+						>
+							<span class="material-symbols-outlined text-sm" data-icon="close"
+								>close</span
+							>
+						</button>
+					</div>
+					<div class="grid grid-cols-2 gap-y-4">
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">🏃‍♂️</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>5.2</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>km</span
+							>
+						</div>
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">⏱</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>24</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>min</span
+							>
+						</div>
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">⚡️</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>4:37</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>min/km</span
+							>
+						</div>
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">🦶🏼</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>178</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>spm</span
+							>
+						</div>
+					</div>
+				</div>
+				<!-- Workout Card: Cycling -->
+				<div
+					class="workout workout--cycling relative group bg-[#3b444b] p-5 rounded-xl border-l-[5px] border-[#ffb545] shadow-xl hover:translate-x-1 transition-all cursor-pointer"
+				>
+					<div class="flex justify-between items-start mb-4">
+						<h2
+							class="workout__title text-white font-bold text-base leading-tight"
+						>
+							Cycling on April 12
+						</h2>
+						<button
+							class="btn-delete opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-error"
+						>
+							<span class="material-symbols-outlined text-sm" data-icon="close"
+								>close</span
+							>
+						</button>
+					</div>
+					<div class="grid grid-cols-2 gap-y-4">
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">🚴‍♀️</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>27</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>km</span
+							>
+						</div>
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">⏱</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>95</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>min</span
+							>
+						</div>
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">⚡️</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>16</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>km/h</span
+							>
+						</div>
+						<div class="flex items-baseline gap-2">
+							<span class="workout__icon text-xl">⛰</span>
+							<span class="workout__value text-lg font-extrabold text-white"
+								>323</span
+							>
+							<span
+								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
+								>m</span
+							>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Footer Actions -->
+			<div class="pt-4 mt-auto">
+				<button
+					class="btn-clear w-full py-3 px-4 bg-surface-container-highest hover:bg-surface-bright text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+				>
+					<span
+						class="material-symbols-outlined text-sm"
+						data-icon="delete_sweep"
+						>delete_sweep</span
+					>
+					Clear All Workouts
+				</button>
+			</div>
+		</aside>
+		<!-- Main Content: Map Interface -->
+		<main
+			class="ml-[380px] h-screen w-[calc(100%-380px)] relative overflow-hidden"
+		>
+			<!-- Map Canvas (Leaflet simulation) -->
+			<div
+				class="absolute inset-0 map-container z-0"
+				data-alt="High-contrast dark mode satellite map view of a city with sleek neon green and orange path lines highlighting fitness routes"
+				data-location="London"
+				style=""
+			>
+				<!-- Simulated Map Dark Overlay -->
+				<div
+					class="absolute inset-0 bg-surface-container/60 backdrop-contrast-125"
+				></div>
+				<!-- Simulated Map Markers -->
+				<div
+					class="absolute top-[40%] left-[30%] -translate-x-1/2 -translate-y-1/2"
+				>
+					<div class="relative flex flex-col items-center">
+						<div
+							class="bg-surface-container-high px-4 py-2 rounded-xl shadow-2xl border-l-4 border-primary backdrop-blur-md mb-2"
+						>
+							<p class="text-xs font-bold text-white whitespace-nowrap">
+								🏃‍♂️ Running: 5.2km
+							</p>
+						</div>
+						<div
+							class="w-4 h-4 bg-primary rounded-full border-4 border-surface shadow-[0_0_15px_rgba(99,255,157,0.8)]"
+						></div>
+					</div>
+				</div>
+				<div
+					class="absolute top-[60%] left-[60%] -translate-x-1/2 -translate-y-1/2"
+				>
+					<div class="relative flex flex-col items-center">
+						<div
+							class="bg-surface-container-high px-4 py-2 rounded-xl shadow-2xl border-l-4 border-secondary backdrop-blur-md mb-2"
+						>
+							<p class="text-xs font-bold text-white whitespace-nowrap">
+								🚴‍♀️ Cycling: 27km
+							</p>
+						</div>
+						<div
+							class="w-4 h-4 bg-secondary rounded-full border-4 border-surface shadow-[0_0_15px_rgba(249,176,64,0.8)]"
+						></div>
+					</div>
+				</div>
+			</div>
+			<!-- Predicted TopAppBar: Glassmorphic Floating Header -->
+			<header
+				class="fixed top-4 right-4 z-50 flex items-center gap-4 w-[calc(100%-420px)] bg-transparent backdrop-blur-md bg-opacity-70 rounded-xl px-4 py-2 shadow-lg shadow-black/20 font-manrope text-sm font-semibold scale-105 transition-transform"
+			>
+				<div class="flex-grow"></div>
+				<!-- Search Bar -->
+				<div class="relative flex items-center">
+					<span
+						class="material-symbols-outlined absolute left-3 text-on-surface-variant text-lg"
+						data-icon="search"
+						>search</span
+					>
+					<input
+						class="bg-surface-container-lowest/50 border-none rounded-full py-1.5 pl-10 pr-4 text-xs text-white focus:ring-1 focus:ring-primary/50 w-64 placeholder:text-on-surface-variant/50"
+						placeholder="Search locations..."
+						type="text"
+					/>
+				</div>
+				<!-- Trailing Icons -->
+				<div class="flex items-center gap-2">
+					<button
+						class="p-2 text-slate-300 hover:text-emerald-300 transition-colors"
+					>
+						<span class="material-symbols-outlined text-lg" data-icon="settings"
+							>settings</span
+						>
+					</button>
+					<button
+						class="p-2 text-slate-300 hover:text-emerald-300 transition-colors"
+					>
+						<span class="material-symbols-outlined text-lg" data-icon="help"
+							>help</span
+						>
+					</button>
+				</div>
+				<!-- User Profile (Small Anchor) -->
+				<div
+					class="ml-2 w-8 h-8 rounded-full overflow-hidden border border-primary/30 ring-2 ring-primary/10"
+				>
+					<img
+						class="w-full h-full object-cover"
+						data-alt="close-up portrait of an athletic woman with a focused expression, soft natural lighting, outdoor fitness setting"
+						src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwFZLaUAzJ7YJAJPKmZ5CRP0dtMEAK51DaTcGXUYE5lnyyg5yUQYjypJDr_BfTZFhDLhUOkfrxsfiTXuWU7nVBYZF0JTL10lar8FxEjJw3Eu4Juu6CqpxpSrLIDL9W_ntG5RoymtgLX5Ktpu6WxkCosLz2pV0RocMV4CSFbvlQziYMFa_2ebxJ1_lxBMWOvjvOyOJTKxSf49vUFgU7XwzmCkzdYQscdAErh5ovJFDWZ5fwXJpemHRbGHgjfufYzWDwkz1scljAjZs"
+					/>
+				</div>
+			</header>
+			<!-- Map Navigation Controls -->
+			<div class="absolute bottom-10 right-10 flex flex-col gap-2 z-50">
+				<button
+					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors"
+				>
+					<span class="material-symbols-outlined" data-icon="add">add</span>
+				</button>
+				<button
+					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors"
+				>
+					<span class="material-symbols-outlined" data-icon="remove"
+						>remove</span
+					>
+				</button>
+				<button
+					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors mt-4"
+				>
+					<span class="material-symbols-outlined" data-icon="my_location"
+						>my_location</span
+					>
+				</button>
+			</div>
+			<!-- Layer Toggle -->
+			<div class="absolute bottom-10 left-10 z-50">
+				<div
+					class="bg-surface-container-high/80 backdrop-blur-md p-1.5 rounded-xl shadow-xl flex gap-1"
+				>
+					<button
+						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase bg-primary text-on-primary-container shadow-lg"
+					>
+						Street
+					</button>
+					<button
+						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase text-on-surface-variant hover:text-white transition-colors"
+					>
+						Satellite
+					</button>
+					<button
+						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase text-on-surface-variant hover:text-white transition-colors"
+					>
+						Terrain
+					</button>
+				</div>
+			</div>
+		</main>
+
+		<!-- Models first -->
+		<script src="src/models/Workout.js"></script>
+		<script src="src/models/Running.js"></script>
+		<script src="src/models/Cycling.js"></script>
+
+		<!-- Services -->
+		<script src="src/services/EventBus.js"></script>
+		<script src="src/services/WorkoutStore.js"></script>
+		<script src="src/services/MapManager.js"></script>
+		<script src="src/services/UIManager.js"></script>
+
+		<!-- Core -->
+		<script src="src/core/WorkoutManager.js"></script>
+
+		<!-- Bootstrap -->
+		<script src="src/App.js"></script>
+	</body>
+</html>
