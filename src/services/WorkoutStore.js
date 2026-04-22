@@ -1,3 +1,4 @@
+import { UIManager } from './UIManager.js';
 export class WorkoutStore {
 	constructor() {
 		this.workouts = this.getWorkouts();
@@ -21,4 +22,6 @@ export class WorkoutStore {
 		this.saveWorkouts();
 		return this.workouts;
 	}
+
+	_saveToggleTheme() {}
 }

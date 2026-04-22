@@ -1,21 +1,31 @@
 class EventBus {
 	storage = {};
 
-	on(event, callback) {
-		if (!this.storage[event]) {
-			this.storage[event] = [];
+	on(eventName, callback) {
+		if (!this.storage[eventName]) {
+			this.storage[eventName] = [];
 		}
 
-		this.storage[event].push(callback);
+		if (!this.storage[eventName].includes(callback)) {
+			this.storage[eventName].push(callback);
+		}
 	}
 
-	emit(event, data) {
-		const events = this.storage[event];
-		if (events) {
-			events.forEach((event) => {
-				event(data);
-			});
-		}
+	emit(eventName, data) {
+		const events = this.storage[eventName];
+
+		if (!events) return;
+
+		events.forEach((callback) => {
+			callback(data);
+		});
+	}
+
+	off(eventName, callback) {
+		const events = this.storage[eventName];
+		if (!events) return;
+
+		this.storage[eventName] = events.filter((cb) => cb !== callback);
 	}
 }
 

@@ -36,23 +36,19 @@ export class MapManager {
 	_pinDetails(workout) {
 		const myIcon = L.divIcon({
 			html: `
-  <div style="display:flex; flex-direction:column; align-items:center">
+    <div class="pin-wrapper">
 
-  <!-- Label card -->
-  <div style="background:#182127; border-left:4px solid ${workout.color}; padding:6px 12px; border-radius:10px; margin-bottom:6px">
-    <p style="color:white; font-size:12px; white-space:nowrap">
-      ${workout.icon} ${workout.description}
-    </p>
-  </div>
+      <div class="pin-label" style="border-left-color:${workout.color}">
+        <span class="pin-icon">${workout.icon}</span>
+        <span>${workout.description}</span>
+      </div>
 
-  <!-- Glowing dot -->
-  <div style="width:14px; height:14px; background:${workout.color}; border-radius:50%; box-shadow:0 0 15px ${workout.glow}">
-  </div>
+      <div class="pin-dot" style="background:${workout.color}; box-shadow:0 0 12px ${workout.glow}"></div>
 
-</div>`,
-
+    </div>
+  `,
 			className: '',
-			iconAnchor: [16, 16],
+			iconAnchor: [20, 42],
 		});
 		workout.marker = L.marker(workout.coords, { icon: myIcon }).addTo(
 			this.#map,

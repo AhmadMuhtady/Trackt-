@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-		<title>Trackt // Performance Tracker</title>
+		<title>Trackt</title>
 		<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 		<link
 			rel="icon"
@@ -21,6 +21,11 @@
 		<link
 			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
 			rel="stylesheet"
+		/>
+
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 		/>
 		<script id="tailwind-config">
 			tailwind.config = {
@@ -116,10 +121,73 @@
 				background: #42494e;
 				border-radius: 10px;
 			}
-			.map-container {
-				background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDT6ZAf4mj5o3AWVgaQAjQ8Y2BFlnjx1sgwa90hPRhxdGdOtFbhILgMwsIOrA7c9T7zdLdlF85TJ0Vaha9hoBWMfmG85rS_2AUvx895RTuslWIW5nTTDYbSozVWmTkfdvWXwi3LD6EeiHFplT60ehdzOM2gQTCVMyKt9XuGj5z-ARqH1-2wx1VXOm1AE_2UXxKx407EoNRSJ1YKmxil3nxFhFnSKU-DM_l6YhlkdimJE-jFxYitsFMbt9ULB4DWStJi1gKWFSfCoMA);
-				background-size: cover;
-				background-position: center;
+
+			.pin-wrapper {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				transform: translateY(0);
+				transition: all 0.3s ease;
+			}
+
+			.pin-wrapper:hover {
+				transform: translateY(-4px) scale(1.05);
+			}
+
+			/* Label */
+			.pin-label {
+				background: rgba(24, 33, 39, 0.9);
+				backdrop-filter: blur(6px);
+				border-left: 4px solid;
+				padding: 6px 10px;
+				border-radius: 10px;
+				margin-bottom: 6px;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				font-size: 12px;
+				color: white;
+				white-space: nowrap;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+			}
+
+			/* Icon inside label */
+			.pin-icon {
+				font-size: 14px;
+			}
+
+			/* Dot */
+			.pin-dot {
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+				transition: all 0.3s ease;
+			}
+
+			/* Pulse animation */
+			.pin-dot::after {
+				content: '';
+				position: absolute;
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+				background: inherit;
+				animation: pulse 1.8s infinite;
+				opacity: 0.6;
+			}
+
+			@keyframes pulse {
+				0% {
+					transform: scale(1);
+					opacity: 0.6;
+				}
+				70% {
+					transform: scale(2.2);
+					opacity: 0;
+				}
+				100% {
+					opacity: 0;
+				}
 			}
 		</style>
 	</head>
@@ -130,28 +198,6 @@
 		<aside
 			class="fixed left-0 top-0 h-screen w-[380px] z-40 bg-[#2d3439] dark:bg-slate-800 shadow-2xl shadow-black/50 flex flex-col py-8 px-6 gap-y-6 font-manrope antialiased tracking-tight"
 		>
-			<!-- Header & Logo -->
-			<div class="flex items-center gap-3">
-				<div class="bg-primary p-2 rounded-lg">
-					<span
-						class="material-symbols-outlined text-on-primary-fixed"
-						data-icon="explore"
-						data-weight="fill"
-						style="font-variation-settings: 'FILL' 1"
-						>explore</span
-					>
-				</div>
-				<div>
-					<h1 class="text-2xl font-black tracking-tighter text-white uppercase">
-						Trackt
-					</h1>
-					<p
-						class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold"
-					>
-						Performance Tracker
-					</p>
-				</div>
-			</div>
 			<!-- Global Stats Panel -->
 			<div
 				class="grid grid-cols-3 gap-2 bg-surface-container-highest/30 p-4 rounded-xl backdrop-blur-sm"
@@ -162,7 +208,9 @@
 					>
 						Workouts
 					</p>
-					<p class="text-xl font-extrabold text-white">12</p>
+					<p id="stats-workouts" class="text-xl font-extrabold text-white">
+						12
+					</p>
 				</div>
 				<div class="text-center border-x border-outline-variant/30">
 					<p
@@ -170,7 +218,7 @@
 					>
 						Distance
 					</p>
-					<p class="text-xl font-extrabold text-white">
+					<p id="stat-distance" class="text-xl font-extrabold text-white">
 						142<span class="text-xs ml-0.5 text-on-surface-variant">km</span>
 					</p>
 				</div>
@@ -180,7 +228,7 @@
 					>
 						Time
 					</p>
-					<p class="text-xl font-extrabold text-white">
+					<p id="stat-time" class="text-xl font-extrabold text-white">
 						640<span class="text-xs ml-0.5 text-on-surface-variant">m</span>
 					</p>
 				</div>
@@ -188,6 +236,7 @@
 			<!-- Navigation Tabs -->
 			<nav class="flex flex-col gap-1">
 				<div
+					data-filter="all"
 					class="text-white font-bold border-l-4 border-[#00c46a] bg-slate-700/50 flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
 				>
 					<span class="material-symbols-outlined" data-icon="dashboard"
@@ -195,21 +244,25 @@
 					>
 					<span class="text-sm">All Workouts</span>
 				</div>
-				<div
-					class="text-slate-400 font-medium hover:text-white flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
-				>
-					<span class="material-symbols-outlined" data-icon="directions_run"
-						>directions_run</span
+				<div class="grid grid-cols-2 gap-3">
+					<div
+						data-filter="running"
+						class="text-slate-400 font-medium hover:text-white flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
 					>
-					<span class="text-sm">Running</span>
-				</div>
-				<div
-					class="text-slate-400 font-medium hover:text-white flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
-				>
-					<span class="material-symbols-outlined" data-icon="directions_bike"
-						>directions_bike</span
+						<span class="material-symbols-outlined" data-icon="directions_run"
+							>directions_run</span
+						>
+						<span class="text-sm">Running</span>
+					</div>
+					<div
+						data-filter="cycling"
+						class="text-slate-400 font-medium hover:text-white flex items-center gap-4 px-4 py-3 hover:bg-slate-700/30 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-in-out"
 					>
-					<span class="text-sm">Cycling</span>
+						<span class="material-symbols-outlined" data-icon="directions_bike"
+							>directions_bike</span
+						>
+						<span class="text-sm">Cycling</span>
+					</div>
 				</div>
 			</nav>
 			<!-- Sort & Filter Container -->
@@ -217,30 +270,91 @@
 				<p class="text-xs font-bold text-on-surface-variant uppercase">
 					Recent Activity
 				</p>
-				<div class="flex items-center gap-2">
-					<button
-						class="p-1.5 rounded-md bg-surface-variant hover:bg-surface-bright text-on-surface-variant transition-colors"
-					>
-						<span class="material-symbols-outlined text-sm" data-icon="sort"
-							>sort</span
+				<div class="relative flex items-center gap-2">
+					<div class="relative">
+						<button
+							id="sort-btn"
+							class="p-1.5 rounded-md bg-surface-variant hover:bg-surface-bright text-on-surface-variant transition-colors"
 						>
-					</button>
-					<button
-						class="p-1.5 rounded-md bg-surface-variant hover:bg-surface-bright text-on-surface-variant transition-colors"
-					>
-						<span
-							class="material-symbols-outlined text-sm"
-							data-icon="filter_list"
-							>filter_list</span
+							<span class="material-symbols-outlined text-sm" data-icon="sort"
+								>sort</span
+							>
+						</button>
+						<div
+							id="sort-dropdown"
+							class="hidden absolute top-full right-0 mt-2 w-52 bg-surface-container-high/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-fadeIn"
 						>
-					</button>
+							<button
+								data-sort="distance"
+								data-order="asc"
+								class="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition"
+							>
+								📏 Distance ↑
+							</button>
+
+							<button
+								data-sort="distance"
+								data-order="desc"
+								class="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition"
+							>
+								📏 Distance ↓
+							</button>
+
+							<button
+								data-sort="duration"
+								data-order="asc"
+								class="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition"
+							>
+								⏱ Duration ↑
+							</button>
+
+							<button
+								data-sort="duration"
+								data-order="desc"
+								class="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition"
+							>
+								⏱ Duration ↓
+							</button>
+						</div>
+					</div>
+					<div class="relative">
+						<button
+							id="filter-btn"
+							class="p-1.5 rounded-md bg-surface-variant hover:bg-surface-bright text-on-surface-variant transition-colors"
+						>
+							<span
+								class="material-symbols-outlined text-sm"
+								data-icon="filter_list"
+								>filter_list</span
+							>
+						</button>
+						<div
+							id="filter-dropdown"
+							class="hidden absolute top-full right-0 mt-2 w-44 bg-surface-container-high/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+						>
+							<button
+								data-date-filter="newest"
+								class="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition"
+							>
+								🆕 Newest first
+							</button>
+
+							<button
+								data-date-filter="oldest"
+								class="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition"
+							>
+								📜 Oldest first
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 			<!-- Workout List (Scrollable) -->
-			<div class="flex-grow overflow-y-auto pr-2 space-y-4">
+			<div id="workout-list" class="flex-grow overflow-y-auto pr-2 space-y-4">
 				<!-- Hidden Form: Workout Entry -->
 				<form
-					class="form bg-surface-container-low p-5 rounded-xl border-l-4 border-primary/50 shadow-lg space-y-4"
+					id="form"
+					class="hidden bg-surface-container-low p-5 rounded-xl border-l-4 border-primary/50 shadow-lg space-y-4"
 				>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-1">
@@ -249,6 +363,7 @@
 								>Type</label
 							>
 							<select
+								id="input-type"
 								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30"
 							>
 								<option value="running">Running</option>
@@ -261,6 +376,7 @@
 								>Distance</label
 							>
 							<input
+								id="input-distance"
 								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30 placeholder:text-on-tertiary-container"
 								placeholder="km"
 								type="text"
@@ -272,152 +388,45 @@
 								>Duration</label
 							>
 							<input
+								id="input-duration"
 								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30 placeholder:text-on-tertiary-container"
 								placeholder="min"
 								type="text"
 							/>
 						</div>
-						<div class="space-y-1">
+						<div id="input-cadence-row" class="space-y-1">
 							<label
 								class="text-[10px] font-bold text-on-surface-variant uppercase px-1"
 								>Cadence</label
 							>
 							<input
+								id="input-cadence"
 								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30 placeholder:text-on-tertiary-container"
 								placeholder="step/min"
+								type="text"
+							/>
+						</div>
+						<div id="input-elevation-row" class="space-y-1 hidden">
+							<label
+								class="text-[10px] font-bold text-on-surface-variant uppercase px-1"
+								>Elev Gain</label
+							>
+							<input
+								id="input-elevation"
+								class="w-full bg-surface-container-lowest border-none rounded-lg text-sm text-white focus:ring-1 focus:ring-primary/30 placeholder:text-on-tertiary-container"
+								placeholder="meters"
 								type="text"
 							/>
 						</div>
 					</div>
 					<button class="hidden" type="submit">Post</button>
 				</form>
-				<!-- Workout Card: Running -->
-				<div
-					class="workout workout--running relative group bg-[#3b444b] p-5 rounded-xl border-l-[5px] border-[#00c46a] shadow-xl hover:translate-x-1 transition-all cursor-pointer"
-				>
-					<div class="flex justify-between items-start mb-4">
-						<h2
-							class="workout__title text-white font-bold text-base leading-tight"
-						>
-							Running on April 14
-						</h2>
-						<button
-							class="btn-delete opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-error"
-						>
-							<span class="material-symbols-outlined text-sm" data-icon="close"
-								>close</span
-							>
-						</button>
-					</div>
-					<div class="grid grid-cols-2 gap-y-4">
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">🏃‍♂️</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>5.2</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>km</span
-							>
-						</div>
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">⏱</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>24</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>min</span
-							>
-						</div>
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">⚡️</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>4:37</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>min/km</span
-							>
-						</div>
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">🦶🏼</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>178</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>spm</span
-							>
-						</div>
-					</div>
-				</div>
-				<!-- Workout Card: Cycling -->
-				<div
-					class="workout workout--cycling relative group bg-[#3b444b] p-5 rounded-xl border-l-[5px] border-[#ffb545] shadow-xl hover:translate-x-1 transition-all cursor-pointer"
-				>
-					<div class="flex justify-between items-start mb-4">
-						<h2
-							class="workout__title text-white font-bold text-base leading-tight"
-						>
-							Cycling on April 12
-						</h2>
-						<button
-							class="btn-delete opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-error"
-						>
-							<span class="material-symbols-outlined text-sm" data-icon="close"
-								>close</span
-							>
-						</button>
-					</div>
-					<div class="grid grid-cols-2 gap-y-4">
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">🚴‍♀️</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>27</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>km</span
-							>
-						</div>
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">⏱</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>95</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>min</span
-							>
-						</div>
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">⚡️</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>16</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>km/h</span
-							>
-						</div>
-						<div class="flex items-baseline gap-2">
-							<span class="workout__icon text-xl">⛰</span>
-							<span class="workout__value text-lg font-extrabold text-white"
-								>323</span
-							>
-							<span
-								class="workout__unit text-[10px] uppercase font-bold text-on-surface-variant"
-								>m</span
-							>
-						</div>
-					</div>
-				</div>
 			</div>
 			<!-- Footer Actions -->
 			<div class="pt-4 mt-auto">
 				<button
-					class="btn-clear w-full py-3 px-4 bg-surface-container-highest hover:bg-surface-bright text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+					id="btn-clear"
+					class="w-full py-3 px-4 bg-surface-container-highest hover:bg-surface-bright text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
 				>
 					<span
 						class="material-symbols-outlined text-sm"
@@ -434,6 +443,7 @@
 		>
 			<!-- Map Canvas (Leaflet simulation) -->
 			<div
+				id="map"
 				class="absolute inset-0 map-container z-0"
 				data-alt="High-contrast dark mode satellite map view of a city with sleek neon green and orange path lines highlighting fitness routes"
 				data-location="London"
@@ -443,68 +453,48 @@
 				<div
 					class="absolute inset-0 bg-surface-container/60 backdrop-contrast-125"
 				></div>
-				<!-- Simulated Map Markers -->
-				<div
-					class="absolute top-[40%] left-[30%] -translate-x-1/2 -translate-y-1/2"
-				>
-					<div class="relative flex flex-col items-center">
-						<div
-							class="bg-surface-container-high px-4 py-2 rounded-xl shadow-2xl border-l-4 border-primary backdrop-blur-md mb-2"
-						>
-							<p class="text-xs font-bold text-white whitespace-nowrap">
-								🏃‍♂️ Running: 5.2km
-							</p>
-						</div>
-						<div
-							class="w-4 h-4 bg-primary rounded-full border-4 border-surface shadow-[0_0_15px_rgba(99,255,157,0.8)]"
-						></div>
-					</div>
-				</div>
-				<div
-					class="absolute top-[60%] left-[60%] -translate-x-1/2 -translate-y-1/2"
-				>
-					<div class="relative flex flex-col items-center">
-						<div
-							class="bg-surface-container-high px-4 py-2 rounded-xl shadow-2xl border-l-4 border-secondary backdrop-blur-md mb-2"
-						>
-							<p class="text-xs font-bold text-white whitespace-nowrap">
-								🚴‍♀️ Cycling: 27km
-							</p>
-						</div>
-						<div
-							class="w-4 h-4 bg-secondary rounded-full border-4 border-surface shadow-[0_0_15px_rgba(249,176,64,0.8)]"
-						></div>
-					</div>
-				</div>
 			</div>
 			<!-- Predicted TopAppBar: Glassmorphic Floating Header -->
 			<header
-				class="fixed top-4 right-4 z-50 flex items-center gap-4 w-[calc(100%-420px)] bg-transparent backdrop-blur-md bg-opacity-70 rounded-xl px-4 py-2 shadow-lg shadow-black/20 font-manrope text-sm font-semibold scale-105 transition-transform"
+				class="fixed top-4 right-4 z-50 flex items-center gap-4 w-[calc(100%-420px)] dark:bg-slate-800 bg-transparent backdrop-blur-md bg-opacity-70 rounded-xl px-4 py-2 shadow-lg shadow-black/20 font-manrope text-sm font-semibold scale-105 transition-transform"
 			>
-				<div class="flex-grow"></div>
-				<!-- Search Bar -->
-				<div class="relative flex items-center">
-					<span
-						class="material-symbols-outlined absolute left-3 text-on-surface-variant text-lg"
-						data-icon="search"
-						>search</span
-					>
-					<input
-						class="bg-surface-container-lowest/50 border-none rounded-full py-1.5 pl-10 pr-4 text-xs text-white focus:ring-1 focus:ring-primary/50 w-64 placeholder:text-on-surface-variant/50"
-						placeholder="Search locations..."
-						type="text"
-					/>
+				<!-- Header & Logo -->
+				<div class="flex items-center gap-3">
+					<div class="bg-primary p-2 rounded-lg">
+						<span
+							class="material-symbols-outlined text-on-primary-fixed"
+							data-icon="explore"
+							data-weight="fill"
+							style="font-variation-settings: 'FILL' 1"
+							>explore</span
+						>
+					</div>
+					<div>
+						<h1
+							class="text-2xl font-black tracking-tighter text-white uppercase"
+						>
+							Trackt
+						</h1>
+						<p
+							class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold"
+						>
+							Performance Tracker
+						</p>
+					</div>
 				</div>
+				<div class="flex-grow"></div>
+
 				<!-- Trailing Icons -->
 				<div class="flex items-center gap-2">
 					<button
-						class="p-2 text-slate-300 hover:text-emerald-300 transition-colors"
+						type="button"
+						id="themeToggle-btn"
+						class="p-1 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300"
 					>
-						<span class="material-symbols-outlined text-lg" data-icon="settings"
-							>settings</span
-						>
+						<span class="material-symbols-outlined">light_mode</span>
 					</button>
 					<button
+						id="info-btn"
 						class="p-2 text-slate-300 hover:text-emerald-300 transition-colors"
 					>
 						<span class="material-symbols-outlined text-lg" data-icon="help"
@@ -512,25 +502,17 @@
 						>
 					</button>
 				</div>
-				<!-- User Profile (Small Anchor) -->
-				<div
-					class="ml-2 w-8 h-8 rounded-full overflow-hidden border border-primary/30 ring-2 ring-primary/10"
-				>
-					<img
-						class="w-full h-full object-cover"
-						data-alt="close-up portrait of an athletic woman with a focused expression, soft natural lighting, outdoor fitness setting"
-						src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwFZLaUAzJ7YJAJPKmZ5CRP0dtMEAK51DaTcGXUYE5lnyyg5yUQYjypJDr_BfTZFhDLhUOkfrxsfiTXuWU7nVBYZF0JTL10lar8FxEjJw3Eu4Juu6CqpxpSrLIDL9W_ntG5RoymtgLX5Ktpu6WxkCosLz2pV0RocMV4CSFbvlQziYMFa_2ebxJ1_lxBMWOvjvOyOJTKxSf49vUFgU7XwzmCkzdYQscdAErh5ovJFDWZ5fwXJpemHRbGHgjfufYzWDwkz1scljAjZs"
-					/>
-				</div>
 			</header>
 			<!-- Map Navigation Controls -->
 			<div class="absolute bottom-10 right-10 flex flex-col gap-2 z-50">
 				<button
+					id="zoom-in-btn"
 					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors"
 				>
 					<span class="material-symbols-outlined" data-icon="add">add</span>
 				</button>
 				<button
+					id="zoom-out-btn"
 					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors"
 				>
 					<span class="material-symbols-outlined" data-icon="remove"
@@ -538,6 +520,7 @@
 					>
 				</button>
 				<button
+					id="my-location-btn"
 					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors mt-4"
 				>
 					<span class="material-symbols-outlined" data-icon="my_location"
@@ -551,39 +534,153 @@
 					class="bg-surface-container-high/80 backdrop-blur-md p-1.5 rounded-xl shadow-xl flex gap-1"
 				>
 					<button
+						id="layer-street"
 						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase bg-primary text-on-primary-container shadow-lg"
 					>
 						Street
 					</button>
 					<button
+						id="layer-satellite"
 						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase text-on-surface-variant hover:text-white transition-colors"
 					>
 						Satellite
 					</button>
 					<button
+						id="layer-terrain"
 						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase text-on-surface-variant hover:text-white transition-colors"
 					>
 						Terrain
 					</button>
 				</div>
 			</div>
+
+			<div
+				id="info-modal"
+				class="fixed inset-0 bg-black/60 backdrop-blur-md hidden items-center justify-center z-50"
+			>
+				<div
+					class="relative bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl max-w-lg w-full mx-4 border border-white/10 shadow-2xl overflow-hidden"
+				>
+					<!-- Close Button -->
+					<button
+						id="closeInfo"
+						class="absolute top-3 right-3 text-gray-400 hover:text-white transition"
+					>
+						<span class="material-symbols-outlined">close</span>
+					</button>
+
+					<!-- Header -->
+					<div class="mb-5">
+						<h2 class="text-2xl font-black text-white tracking-tight">
+							🚀 Trackt Info
+						</h2>
+						<p class="text-sm text-gray-400">
+							Overview of features and architecture
+						</p>
+					</div>
+
+					<!-- Content -->
+					<div class="space-y-5 max-h-[400px] overflow-y-auto pr-2">
+						<!-- Features -->
+						<div>
+							<h3 class="text-sm font-bold text-emerald-400 uppercase mb-2">
+								Features
+							</h3>
+							<ul class="space-y-2 text-sm text-gray-300">
+								<li class="flex items-center gap-2">
+									<span
+										class="material-symbols-outlined text-emerald-400 text-sm"
+										>directions_run</span
+									>
+									Log running & cycling workouts
+								</li>
+								<li class="flex items-center gap-2">
+									<span
+										class="material-symbols-outlined text-emerald-400 text-sm"
+										>map</span
+									>
+									Interactive map tracking
+								</li>
+								<li class="flex items-center gap-2">
+									<span
+										class="material-symbols-outlined text-emerald-400 text-sm"
+										>bar_chart</span
+									>
+									View total stats (distance, duration)
+								</li>
+								<li class="flex items-center gap-2">
+									<span
+										class="material-symbols-outlined text-emerald-400 text-sm"
+										>sort</span
+									>
+									Sort workouts easily
+								</li>
+								<li class="flex items-center gap-2">
+									<span class="material-symbols-outlined text-red-400 text-sm"
+										>delete</span
+									>
+									Delete workouts
+								</li>
+								<li class="flex items-center gap-2">
+									<span class="material-symbols-outlined text-blue-400 text-sm"
+										>save</span
+									>
+									Saved with localStorage
+								</li>
+							</ul>
+						</div>
+
+						<!-- Tech Stack -->
+						<div>
+							<h3 class="text-sm font-bold text-indigo-400 uppercase mb-2">
+								Tech Stack
+							</h3>
+							<div class="flex flex-wrap gap-2 text-xs">
+								<span class="px-2 py-1 bg-white/10 rounded-md"
+									>JavaScript (OOP)</span
+								>
+								<span class="px-2 py-1 bg-white/10 rounded-md">Leaflet.js</span>
+								<span class="px-2 py-1 bg-white/10 rounded-md"
+									>Tailwind CSS</span
+								>
+								<span class="px-2 py-1 bg-white/10 rounded-md"
+									>Geolocation API</span
+								>
+							</div>
+						</div>
+
+						<!-- Architecture -->
+						<div>
+							<h3 class="text-sm font-bold text-purple-400 uppercase mb-2">
+								Architecture
+							</h3>
+							<div class="grid grid-cols-2 gap-2 text-xs text-gray-300">
+								<span class="bg-white/5 p-2 rounded">WorkoutStore</span>
+								<span class="bg-white/5 p-2 rounded">MapManager</span>
+								<span class="bg-white/5 p-2 rounded">UIManager</span>
+								<span class="bg-white/5 p-2 rounded">EventBus</span>
+								<span class="bg-white/5 p-2 rounded col-span-2 text-center">
+									WorkoutManager
+								</span>
+							</div>
+						</div>
+
+						<!-- Run -->
+						<div>
+							<h3 class="text-sm font-bold text-yellow-400 uppercase mb-2">
+								Run Locally
+							</h3>
+							<p class="text-xs text-gray-400">
+								Clone the repo and open
+								<span class="text-white font-bold">index.html</span>. No build
+								step required.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
 		</main>
-
-		<!-- Models first -->
-		<script src="src/models/Workout.js"></script>
-		<script src="src/models/Running.js"></script>
-		<script src="src/models/Cycling.js"></script>
-
-		<!-- Services -->
-		<script src="src/services/EventBus.js"></script>
-		<script src="src/services/WorkoutStore.js"></script>
-		<script src="src/services/MapManager.js"></script>
-		<script src="src/services/UIManager.js"></script>
-
-		<!-- Core -->
-		<script src="src/core/WorkoutManager.js"></script>
-
-		<!-- Bootstrap -->
-		<script src="src/App.js"></script>
+		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+		<script type="module" src="src/App.js"></script>
 	</body>
 </html>
