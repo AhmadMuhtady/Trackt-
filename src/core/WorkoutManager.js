@@ -67,8 +67,6 @@ export class WorkoutManager {
 			);
 			if (index !== -1) this.store.workouts.splice(index, 1, updatedWorkout);
 
-			console.log(updatedWorkout);
-
 			this.store.saveWorkouts();
 			BusEvent.emit('workouts:rerender', this.store.workouts);
 			BusEvent.emit('stats:updated', this.store.workouts);
@@ -84,7 +82,6 @@ export class WorkoutManager {
 					? new Running(coords, distance, duration, cadence)
 					: new Cycling(coords, distance, duration, elevation);
 
-			console.log(workout);
 			this.store.addWorkout(workout);
 			BusEvent.emit('workout:created', workout);
 			BusEvent.emit('stats:updated', this.store.workouts);

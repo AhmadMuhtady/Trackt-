@@ -42,6 +42,7 @@ export class UIManager {
 		this.infoBtn = document.getElementById('info-btn');
 		this.closeModalBtn = document.getElementById('closeInfo');
 		this.modal = document.getElementById('info-modal');
+		this.modalCard = document.getElementById('info-modal-card');
 
 		this.layerStreet = document.getElementById('layer-street');
 		this.layerSatellite = document.getElementById('layer-satellite');
@@ -214,7 +215,9 @@ export class UIManager {
 		const clickedFilter = this.filterBtn.contains(e.target);
 		const clickedFilterMenu = this.filterDropdown.contains(e.target);
 
-		const clickedModal = this.modal.contains(e.target);
+		const clickedModalCard = document
+			.getElementById('info-modal-card')
+			.contains(e.target);
 		const clickedModalBtn = this.infoBtn.contains(e.target);
 
 		if (this.isSortOpen && !clickedSort && !clickedSortMenu) {
@@ -225,7 +228,7 @@ export class UIManager {
 			this._closeFilter();
 		}
 
-		if (this.isModalOpen && !clickedModal && !clickedModalBtn) {
+		if (this.isModalOpen && !clickedModalCard && !clickedModalBtn) {
 			this._hideModal();
 		}
 	}
