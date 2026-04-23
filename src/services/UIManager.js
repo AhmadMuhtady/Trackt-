@@ -47,12 +47,17 @@ export class UIManager {
 
 		this._applySavedTheme();
 		this._updateThemeIcon();
-		this.selectedCoords;
+		this.selectedCoords = null;
 	}
 
 	_initListeners() {
 		this.form.addEventListener('submit', (e) => {
 			e.preventDefault();
+
+			if (!this.selectedCoords) {
+				return alert('Please click on the map to choose a location first!');
+			}
+
 			const data = this._getFormData();
 
 			if (!this._validateFormData(data)) {
@@ -120,6 +125,13 @@ export class UIManager {
 				return;
 			}
 
+			const editBtn = e.target.closest('.btn-edit');
+			if (editBtn) {
+				const item = editBtn.closest('[data-id]');
+				BusEvent.emit('workout:edit', item.dataset.id);
+				return;
+			}
+
 			const item = e.target.closest('[data-id]');
 			if (!item) return;
 			BusEvent.emit('workout:select', item.dataset.id);
@@ -132,6 +144,9 @@ export class UIManager {
 		BusEvent.on('workout:deleted', (id) => this._removeWorkout(id));
 		BusEvent.on('stats:updated', (workouts) => this._updateStats(workouts));
 		BusEvent.on('workouts:rerender', (workouts) => this._rerenderAll(workouts));
+		BusEvent.on('workout:editForm', (workout) =>
+			this._editWorkoutForm(workout),
+		);
 	}
 
 	_toggleType() {
@@ -247,6 +262,10 @@ export class UIManager {
 					${workout.description}
 				</h2>
 
+				<button class="btn-edit opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-primary">                
+          <span class="material-symbols-outlined text-sm">edit</span>
+        </button>
+
 				<button class="btn-delete opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-error">
 					<span class="material-symbols-outlined text-sm">close</span>
 				</button>
@@ -338,8 +357,10 @@ export class UIManager {
 		const stats = WorkoutService.getStats(workouts);
 
 		this.statsWorkout.textContent = stats.totalWorkouts;
-		this.statsDistance.textContent = Formatter.number(stats.totalDistance);
-		this.statsTime.textContent = Formatter.number(stats.totalTime);
+
+		this.statsDistance.innerHTML = `${Formatter.number(stats.totalDistance)}<span class="text-xs ml-0.5 text-on-surface-variant">km</span>`;
+
+		this.statsTime.innerHTML = `${Formatter.number(stats.totalTime)}<span class="text-xs ml-0.5 text-on-surface-variant">min</span>`;
 	}
 
 	_removeWorkout(id) {
@@ -386,5 +407,20 @@ export class UIManager {
 		}
 
 		return false;
+	}
+
+	_editWorkoutForm(workout) {
+		this._showForm(workout.coords);
+
+		this.inputType.value = workout.type;
+		this.inputDistance.value = workout.distance;
+		this.inputDuration.value = workout.duration;
+		if (workout.type === 'running') {
+			this.inputCadence.value = workout.cadence;
+		} else {
+			this.inputElevation.value = workout.elevationGain;
+		}
+
+		this._toggleType();
 	}
 }
