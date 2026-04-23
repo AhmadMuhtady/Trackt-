@@ -3,6 +3,8 @@ import { BusEvent } from '../core/EventBus.js';
 export class MapManager {
 	#map;
 	#mapZoom = 13;
+	#minZoom = 3;
+	#maxZoom = 19;
 	#markers = [];
 	#currentLayer = null;
 
@@ -21,7 +23,10 @@ export class MapManager {
 		const { latitude, longitude } = position.coords;
 		const coords = [latitude, longitude];
 
-		this.#map = L.map('map').setView(coords, this.#mapZoom);
+		this.#map = L.map('map', {
+			minZoom: this.#minZoom,
+			maxZoom: this.#maxZoom,
+		}).setView(coords, this.#mapZoom);
 
 		const savedLayer = localStorage.getItem('mapLayer') || 'street';
 		this._switchLayer(savedLayer);
@@ -32,6 +37,21 @@ export class MapManager {
 		this.#map.on('click', (mapE) => {
 			const { lat, lng } = mapE.latlng;
 			BusEvent.emit('map:click', [lat, lng]);
+		});
+
+		document.getElementById('map-confiq').addEventListener('click', (e) => {
+			const btn = e.target.closest('[data-zoom]');
+			if (!btn) return;
+
+			const action = btn.dataset.zoom;
+
+			if (action === 'in') this.#map.zoomIn();
+			if (action === 'out') this.#map.zoomOut();
+			if (action === 'my-location')
+				this.#map.locate({
+					setView: true,
+					maxZoom: this.#mapZoom,
+				});
 		});
 
 		// 2. FIXED: Listen for created workouts OUTSIDE the click handler

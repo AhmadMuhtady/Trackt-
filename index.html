@@ -504,14 +504,19 @@
 				</div>
 			</header>
 			<!-- Map Navigation Controls -->
-			<div class="absolute bottom-10 right-10 flex flex-col gap-2 z-50">
+			<div
+				id="map-confiq"
+				class="absolute bottom-10 right-10 flex flex-col gap-2 z-50"
+			>
 				<button
+					data-zoom="in"
 					id="zoom-in-btn"
 					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors"
 				>
 					<span class="material-symbols-outlined" data-icon="add">add</span>
 				</button>
 				<button
+					data-zoom="out"
 					id="zoom-out-btn"
 					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors"
 				>
@@ -520,6 +525,7 @@
 					>
 				</button>
 				<button
+					data-zoom="my-location"
 					id="my-location-btn"
 					class="w-12 h-12 bg-surface-container-high/80 backdrop-blur-md rounded-xl shadow-xl flex items-center justify-center text-on-surface hover:text-primary transition-colors mt-4"
 				>
