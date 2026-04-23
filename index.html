@@ -529,23 +529,26 @@
 				</button>
 			</div>
 			<!-- Layer Toggle -->
-			<div class="absolute bottom-10 left-10 z-50">
+			<div id="layers-container" class="absolute bottom-10 left-10 z-50">
 				<div
 					class="bg-surface-container-high/80 backdrop-blur-md p-1.5 rounded-xl shadow-xl flex gap-1"
 				>
 					<button
+						data-layer="street"
 						id="layer-street"
 						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase bg-primary text-on-primary-container shadow-lg"
 					>
 						Street
 					</button>
 					<button
+						data-layer="satellite"
 						id="layer-satellite"
 						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase text-on-surface-variant hover:text-white transition-colors"
 					>
 						Satellite
 					</button>
 					<button
+						data-layer="terrain"
 						id="layer-terrain"
 						class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase text-on-surface-variant hover:text-white transition-colors"
 					>

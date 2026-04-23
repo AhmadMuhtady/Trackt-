@@ -4,6 +4,7 @@ export class MapManager {
 	#map;
 	#mapZoom = 13;
 	#markers = [];
+	#currentLayer = null;
 
 	constructor() {
 		this._getPosition();
@@ -22,10 +23,8 @@ export class MapManager {
 
 		this.#map = L.map('map').setView(coords, this.#mapZoom);
 
-		L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution:
-				'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-		}).addTo(this.#map);
+		const savedLayer = localStorage.getItem('mapLayer') || 'street';
+		this._switchLayer(savedLayer);
 
 		L.marker(coords).addTo(this.#map).bindPopup('YOU').openPopup();
 
@@ -59,6 +58,7 @@ export class MapManager {
 
 		BusEvent.on('markers:clear', () => this._clearMarkers());
 		BusEvent.on('marker:pin', (workout) => this._pinDetails(workout));
+		BusEvent.on('layer:change', (name) => this._switchLayer(name));
 	}
 
 	_pinDetails(workout) {
@@ -110,5 +110,31 @@ export class MapManager {
 		if (!found) return;
 		found.marker.remove();
 		this.#markers = this.#markers.filter((m) => m.id !== id);
+	}
+
+	_switchLayer(name) {
+		const layers = {
+			street: {
+				url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+				attribution:
+					'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			},
+			satellite: {
+				url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+				attribution: '&copy; <a href="https://www.esri.com">Esri</a>',
+			},
+			terrain: {
+				url: 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
+				attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+			},
+		};
+
+		if (this.#currentLayer) this.#currentLayer.remove();
+
+		this.#currentLayer = L.tileLayer(layers[name].url, {
+			attribution: layers[name].attribution,
+		}).addTo(this.#map);
+
+		localStorage.setItem('mapLayer', name);
 	}
 }

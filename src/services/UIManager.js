@@ -43,6 +43,11 @@ export class UIManager {
 		this.closeModalBtn = document.getElementById('closeInfo');
 		this.modal = document.getElementById('info-modal');
 
+		this.layerStreet = document.getElementById('layer-street');
+		this.layerSatellite = document.getElementById('layer-satellite');
+		this.layerTerrain = document.getElementById('layer-terrain');
+		this.layersContainer = document.getElementById('layers-container');
+
 		this.nav = document.querySelector('nav');
 
 		this._applySavedTheme();
@@ -146,6 +151,10 @@ export class UIManager {
 		BusEvent.on('workouts:rerender', (workouts) => this._rerenderAll(workouts));
 		BusEvent.on('workout:editForm', (workout) =>
 			this._editWorkoutForm(workout),
+		);
+
+		this.layersContainer.addEventListener('click', (e) =>
+			this._toggleLayers(e),
 		);
 	}
 
@@ -422,5 +431,20 @@ export class UIManager {
 		}
 
 		this._toggleType();
+	}
+
+	_toggleLayers(e) {
+		const btn = e.target.closest('[data-layer]');
+		if (!btn) return;
+
+		document.querySelectorAll('[data-layer]').forEach((b) => {
+			b.classList.remove('bg-primary', 'text-on-primary-container');
+			b.classList.add('text-on-surface-variant');
+		});
+
+		btn.classList.add('bg-primary', 'text-on-primary-container');
+		btn.classList.remove('text-on-surface-variant');
+
+		BusEvent.emit('layer:change', btn.dataset.layer);
 	}
 }
